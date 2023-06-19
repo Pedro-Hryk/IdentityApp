@@ -39,7 +39,8 @@ namespace IdentityEcommerce.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Transaction transaction)
         {
-            var transactionTotal = _transactionService.CalculateTransactionTotal(transaction);
+            double transactionTotal = _transactionService.CalculateTransactionTotal(transaction);
+            bool isCouponValid = _transactionService.ValidateUserCoupon(transaction);
             var user = GetCurrentUser();
             transaction.UserId = user.Id.ToString();
             if (transaction.PayPoints)
@@ -52,6 +53,10 @@ namespace IdentityEcommerce.Controllers
             }
             else
             {
+                if (!user.HasCreditCard)
+                {
+                    return RedirectToAction("Create", "CreditCard");
+                }
                 await UpdateUserRewardPoints(transaction.CurrentProduct.RewardPoints);
             }
 
@@ -90,6 +95,14 @@ namespace IdentityEcommerce.Controllers
             var userID = _userManager.GetUserId(HttpContext.User);
             var user = _userManager.FindByIdAsync(userID).Result;
             return user;
+        }
+
+        public IActionResult Activity()
+        {
+            var userID = _userManager.GetUserId(HttpContext.User);
+            var transactions = _transactionService.GetAllTransactions();
+            var userTransactions = transactions.Where(x => x.UserId == userID);
+            return View(userTransactions);
         }
 
     }

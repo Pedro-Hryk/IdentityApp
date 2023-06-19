@@ -1,12 +1,30 @@
-﻿@using Microsoft.AspNetCore.Identity
+﻿@using IdentityEcommerce.Helpers.Enums;
+@using Microsoft.AspNetCore.Identity
 @inject SignInManager<AppUser> SignInManager
 @inject UserManager<AppUser> UserManager
+@{
+
+    var userID = UserManager.GetUserId(@User);
+    var currentUser = UserManager.FindByIdAsync(userID).Result;
+}
 
 <ul class="navbar-nav">
+@if (@User.IsInRole(AppRoleEnum.SuperUser.ToString()))
+{
+    <li>
+        <a class="nav-link text-dark" asp-controller="Company" asp-action="RegisterAdmin">Register Admin</a>
+    </li>
+    <li>
+        <a class="nav-link text-dark" asp-controller="Coupon" asp-action="Create">Create Coupon</a>
+    </li>
+}
 @if (SignInManager.IsSignedIn(User))
 {
+    <li>
+        <a class="nav-link text-dark" asp-controller="AppUser" asp-action="Settings">Settings</a>
+    </li>
     <li class="nav-item">
-        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @User.Identity.Name!</a>
+        <a  class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Manage/Index" title="Manage">Hello @currentUser.UserName!</a>
     </li>
     <li class="nav-item">
         <form  class="form-inline" asp-controller="AppUser" asp-action="Logout">
